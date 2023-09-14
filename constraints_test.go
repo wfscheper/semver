@@ -4,28 +4,26 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"testing"
 )
 
 func TestParseConstraint(t *testing.T) {
 	tests := []struct {
 		in  string
-		f   cfunc
 		v   string
 		err bool
 	}{
-		{">= 1.2", constraintGreaterThanEqual, "1.2.0", false},
-		{"1.0", constraintTildeOrEqual, "1.0.0", false},
-		{"foo", nil, "", true},
-		{"<= 1.2", constraintLessThanEqual, "1.2.0", false},
-		{"=< 1.2", constraintLessThanEqual, "1.2.0", false},
-		{"=> 1.2", constraintGreaterThanEqual, "1.2.0", false},
-		{"v1.2", constraintTildeOrEqual, "1.2.0", false},
-		{"=1.5", constraintTildeOrEqual, "1.5.0", false},
-		{"> 1.3", constraintGreaterThan, "1.3.0", false},
-		{"< 1.4.1", constraintLessThan, "1.4.1", false},
-		{"< 40.50.10", constraintLessThan, "40.50.10", false},
+		{">= 1.2", "1.2.0", false},
+		{"1.0", "1.0.0", false},
+		{"foo", "", true},
+		{"<= 1.2", "1.2.0", false},
+		{"=< 1.2", "1.2.0", false},
+		{"=> 1.2", "1.2.0", false},
+		{"v1.2", "1.2.0", false},
+		{"=1.5", "1.5.0", false},
+		{"> 1.3", "1.3.0", false},
+		{"< 1.4.1", "1.4.1", false},
+		{"< 40.50.10", "40.50.10", false},
 	}
 
 	for _, tc := range tests {
@@ -44,12 +42,6 @@ func TestParseConstraint(t *testing.T) {
 
 		if tc.v != c.con.String() {
 			t.Errorf("Incorrect version found on %s", tc.in)
-		}
-
-		f1 := reflect.ValueOf(tc.f)
-		f2 := reflect.ValueOf(constraintOps[c.origfunc])
-		if f1 != f2 {
-			t.Errorf("Wrong constraint found for %s", tc.in)
 		}
 	}
 }

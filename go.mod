@@ -1,3 +1,3 @@
-module github.com/Masterminds/semver/v3
+module github.com/wfscheper/semver/v4
 
 go 1.18

@@ -15,14 +15,10 @@ func benchNewConstraint(c string, b *testing.B) {
 }
 
 func BenchmarkNewConstraintUnary(b *testing.B) {
-	b.ReportAllocs()
-	b.ResetTimer()
 	benchNewConstraint("=2.0", b)
 }
 
 func BenchmarkNewConstraintTilde(b *testing.B) {
-	b.ReportAllocs()
-	b.ResetTimer()
 	benchNewConstraint("~2.0.0", b)
 }
 

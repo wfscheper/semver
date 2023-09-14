@@ -614,7 +614,7 @@ func TestSQLScanner(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error creating version: %s", err)
 	}
-	var s sql.Scanner = x
+	var s sql.Scanner = &x
 	var out *Version
 	var ok bool
 	if out, ok = s.(*Version); !ok {

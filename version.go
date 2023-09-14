@@ -65,21 +65,21 @@ const (
 // Performs checking that can find errors within the version.
 // If you want to coerce a version such as 1 or 1.2 and parse it as the 1.x
 // releases of semver did, use the NewVersion() function.
-func StrictNewVersion(v string) (*Version, error) {
+func StrictNewVersion(v string) (Version, error) {
 	// Parsing here does not use RegEx in order to increase performance and reduce
 	// allocations.
 
 	if len(v) == 0 {
-		return nil, ErrEmptyString
+		return Version{}, ErrEmptyString
 	}
 
 	// Split the parts into [0]major, [1]minor, and [2]patch,prerelease,build
 	parts := strings.SplitN(v, ".", 3)
 	if len(parts) != 3 {
-		return nil, ErrInvalidSemVer
+		return Version{}, ErrInvalidSemVer
 	}
 
-	sv := &Version{
+	sv := Version{
 		original: v,
 	}
 
@@ -106,11 +106,11 @@ func StrictNewVersion(v string) (*Version, error) {
 	// numbers and no leading 0's.
 	for _, p := range parts {
 		if !containsOnly(p, num) {
-			return nil, ErrInvalidCharacters
+			return Version{}, ErrInvalidCharacters
 		}
 
 		if len(p) > 1 && p[0] == '0' {
-			return nil, ErrSegmentStartsZero
+			return Version{}, ErrSegmentStartsZero
 		}
 	}
 
@@ -118,17 +118,17 @@ func StrictNewVersion(v string) (*Version, error) {
 	var err error
 	sv.major, err = strconv.ParseUint(parts[0], 10, 64)
 	if err != nil {
-		return nil, err
+		return sv, err
 	}
 
 	sv.minor, err = strconv.ParseUint(parts[1], 10, 64)
 	if err != nil {
-		return nil, err
+		return sv, err
 	}
 
 	sv.patch, err = strconv.ParseUint(parts[2], 10, 64)
 	if err != nil {
-		return nil, err
+		return sv, err
 	}
 
 	// No prerelease or build metadata found so returning now as a fastpath.
@@ -138,13 +138,13 @@ func StrictNewVersion(v string) (*Version, error) {
 
 	if sv.pre != "" {
 		if err = validatePrerelease(sv.pre); err != nil {
-			return nil, err
+			return sv, err
 		}
 	}
 
 	if sv.metadata != "" {
 		if err = validateMetadata(sv.metadata); err != nil {
-			return nil, err
+			return sv, err
 		}
 	}
 
@@ -155,13 +155,13 @@ func StrictNewVersion(v string) (*Version, error) {
 // an error if unable to parse the version. If the version is SemVer-ish it
 // attempts to convert it to SemVer. If you want  to validate it was a strict
 // semantic version at parse time see StrictNewVersion().
-func NewVersion(v string) (*Version, error) {
+func NewVersion(v string) (Version, error) {
 	m := versionRegex.FindStringSubmatch(v)
 	if m == nil {
-		return nil, ErrInvalidSemVer
+		return Version{}, ErrInvalidSemVer
 	}
 
-	sv := &Version{
+	sv := Version{
 		metadata: m[8],
 		pre:      m[5],
 		original: v,
@@ -170,13 +170,13 @@ func NewVersion(v string) (*Version, error) {
 	var err error
 	sv.major, err = strconv.ParseUint(m[1], 10, 64)
 	if err != nil {
-		return nil, fmt.Errorf("Error parsing version segment: %s", err)
+		return sv, fmt.Errorf("Error parsing version segment: %s", err)
 	}
 
 	if m[2] != "" {
 		sv.minor, err = strconv.ParseUint(strings.TrimPrefix(m[2], "."), 10, 64)
 		if err != nil {
-			return nil, fmt.Errorf("Error parsing version segment: %s", err)
+			return sv, fmt.Errorf("Error parsing version segment: %s", err)
 		}
 	} else {
 		sv.minor = 0
@@ -185,7 +185,7 @@ func NewVersion(v string) (*Version, error) {
 	if m[3] != "" {
 		sv.patch, err = strconv.ParseUint(strings.TrimPrefix(m[3], "."), 10, 64)
 		if err != nil {
-			return nil, fmt.Errorf("Error parsing version segment: %s", err)
+			return sv, fmt.Errorf("Error parsing version segment: %s", err)
 		}
 	} else {
 		sv.patch = 0
@@ -196,13 +196,13 @@ func NewVersion(v string) (*Version, error) {
 
 	if sv.pre != "" {
 		if err = validatePrerelease(sv.pre); err != nil {
-			return nil, err
+			return sv, err
 		}
 	}
 
 	if sv.metadata != "" {
 		if err = validateMetadata(sv.metadata); err != nil {
-			return nil, err
+			return sv, err
 		}
 	}
 
@@ -211,7 +211,7 @@ func NewVersion(v string) (*Version, error) {
 
 // New creates a new instance of Version with each of the parts passed in as
 // arguments instead of parsing a version string.
-func New(major, minor, patch uint64, pre, metadata string) *Version {
+func New(major, minor, patch uint64, pre, metadata string) Version {
 	v := Version{
 		major:    major,
 		minor:    minor,
@@ -223,11 +223,11 @@ func New(major, minor, patch uint64, pre, metadata string) *Version {
 
 	v.original = v.String()
 
-	return &v
+	return v
 }
 
 // MustParse parses a given version and panics on error.
-func MustParse(v string) *Version {
+func MustParse(v string) Version {
 	sv, err := NewVersion(v)
 	if err != nil {
 		panic(err)
@@ -255,7 +255,7 @@ func (v Version) String() string {
 }
 
 // Original returns the original value passed in to be parsed.
-func (v *Version) Original() string {
+func (v Version) Original() string {
 	return v.original
 }
 
@@ -377,19 +377,19 @@ func (v Version) SetMetadata(metadata string) (Version, error) {
 }
 
 // LessThan tests if one version is less than another one.
-func (v *Version) LessThan(o *Version) bool {
+func (v Version) LessThan(o Version) bool {
 	return v.Compare(o) < 0
 }
 
 // GreaterThan tests if one version is greater than another one.
-func (v *Version) GreaterThan(o *Version) bool {
+func (v Version) GreaterThan(o Version) bool {
 	return v.Compare(o) > 0
 }
 
 // Equal tests if two versions are equal to each other.
 // Note, versions can be equal with different metadata since metadata
 // is not considered part of the comparable version.
-func (v *Version) Equal(o *Version) bool {
+func (v Version) Equal(o Version) bool {
 	return v.Compare(o) == 0
 }
 
@@ -400,7 +400,7 @@ func (v *Version) Equal(o *Version) bool {
 // lower than the version without a prerelease. Compare always takes into account
 // prereleases. If you want to work with ranges using typical range syntaxes that
 // skip prereleases if the range is not looking for them use constraints.
-func (v *Version) Compare(o *Version) int {
+func (v Version) Compare(o Version) int {
 	// Compare the major, minor, and patch version for differences. If a
 	// difference is found return the comparison.
 	if d := compareSegment(v.Major(), o.Major()); d != 0 {
@@ -461,7 +461,7 @@ func (v *Version) UnmarshalText(text []byte) error {
 		return err
 	}
 
-	*v = *temp
+	*v = temp
 
 	return nil
 }
