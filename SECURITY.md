@@ -15,5 +15,5 @@ Fixes are only released for the latest minor version in the form of a patch rele
 ## Reporting a Vulnerability
 
 You can privately disclose a vulnerability through GitHubs
-[private vulnerability reporting](https://github.com/Masterminds/semver/security/advisories)
+[private vulnerability reporting](https://github.com/wfscheper/semver/security/advisories)
 mechanism.
