@@ -2,7 +2,7 @@ GOPATH=$(shell go env GOPATH)
 GOLANGCI_LINT=$(GOPATH)/bin/golangci-lint
 
 .PHONY: lint
-lint: $(GOLANGCI_LINT)
+lint: | $(GOLANGCI_LINT)
 	@echo "==> Linting codebase"
 	@$(GOLANGCI_LINT) run
 
