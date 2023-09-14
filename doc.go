@@ -26,7 +26,7 @@ parsing the version. For example,
 The version object has methods to get the parts of the version, compare it to
 other versions, convert the version back into a string, and get the original
 string. For more details please see the documentation
-at https://godoc.org/github.com/Masterminds/semver.
+at https://godoc.org/github.com/wfscheper/semver.
 
 # Sorting Semantic Versions
 
